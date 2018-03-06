@@ -22,7 +22,7 @@
 
           <md-field :class="getValidationClass('phone')">
             <label for="phone">手机</label>
-            <md-input type="phone" name="phone" id="phone" v-model="form.phone" :disabled="sending" />
+            <md-input name="phone" id="phone" v-model="form.phone" :disabled="sending" />
             <span class="md-error" v-if="!$v.form.phone.required">请输入手机号</span>
             <span class="md-error" v-else-if="!$v.form.phone.isPhoneNumber">请输入正确的手机号</span>
           </md-field>
@@ -45,8 +45,7 @@
         </md-card-actions>
       </md-card>
 
-      <md-snackbar :md-active.sync="userSaved">用户 {{ form.name }} 的代理申请提交成功</md-snackbar>
-      <md-snackbar :md-active.sync="showSendCaptcha">验证码发送成功</md-snackbar>
+      <md-snackbar :md-active.sync="showTooltip">{{ tooltip }}</md-snackbar>
     </form>
   </div>
 </template>
@@ -59,6 +58,8 @@ import {
   numeric
 } from 'vuelidate/lib/validators'
 
+const reg = /^(13[0-9]|14[579]|15[0-3,5-9]|16[6]|17[0135678]|18[0-9]|19[89])\d{8}$/
+
 export default {
   name: 'FormValidation',
   data: () => ({
@@ -68,9 +69,9 @@ export default {
       phone: null,
       captcha: null
     },
-    userSaved: false,
     sending: false,
-    showSendCaptcha: false,
+    showTooltip: false,
+    tooltip: '',
     time: 0,
     sendedCaptcha: false
   }),
@@ -86,7 +87,6 @@ export default {
       phone: {
         required,
         isPhoneNumber (value) {
-          const reg = /^(13[0-9]|14[579]|15[0-3,5-9]|16[6]|17[0135678]|18[0-9]|19[89])\d{8}$/
           return reg.test(value)
         }
       },
@@ -116,9 +116,24 @@ export default {
       this.form.captcha = null
     },
     sendCaptcha () {
-      this.showSendCaptcha = true
-      this.time = 60
-      this.timer()
+      const me = this
+      if (reg.test(this.form.phone)) {
+        this.time = 60
+        this.timer()
+        this.$http.post('CardStewardEhuan/user/sendSmsCode', { phone: this.form.phone, kindCode: '5' })
+          .then(function (response) {
+            me.tooltip = '验证码发送成功'
+            me.showTooltip = true
+          }).catch(function (error) {
+            console.log(error)
+            me.time = 0
+            me.tooltip = '验证码发送失败'
+            me.showTooltip = true
+          })
+      } else {
+        this.tooltip = '请先输入正确的手机号'
+        this.showTooltip = true
+      }
     },
     timer () {
       if (this.time > 0) {
@@ -127,14 +142,32 @@ export default {
       }
     },
     saveUser () {
+      const me = this
       this.sending = true
 
-      // TODO Instead of this timeout, here you can call your API
-      window.setTimeout(() => {
-        this.userSaved = true
-        this.sending = false
-        this.clearForm()
-      }, 1500)
+      this.$http.post('CardStewardEhuan/user/agentApply', {
+        phone: this.form.phone,
+        smsCode: this.form.captcha,
+        name: this.form.name,
+        company: this.form.company
+      }).then(function (response) {
+        if (response) {
+          if (response.data.resultStatus === '200') {
+            me.tooltip = '用户' + me.form.name + '的代理申请提交成功'
+            me.showTooltip = true
+            me.clearForm()
+          } else {
+            me.tooltip = response.data.resultMessage
+            me.showTooltip = true
+          }
+        }
+      }).catch(function (error) {
+        console.log(error)
+        me.tooltip = '代理申请提交失败'
+        me.showTooltip = true
+      }).then(function () {
+        me.sending = false
+      })
     },
     validateUser () {
       this.$v.$touch()
