@@ -11,7 +11,7 @@ module.exports = {
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
     proxyTable: {
-      '/CardStewardEhuan': {
+      '/CardSteward98': {
         target: 'https://www.winsyo.com',
         changeOrigin: true
       }

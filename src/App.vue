@@ -3,7 +3,14 @@
     <form novalidate class="md-layout" @submit.prevent="validateUser">
       <md-card class="md-layout-item md-size-50 md-small-size-100">
         <md-card-header>
-          <div class="md-title">代理申请</div>
+          <md-card-header-text>
+            <div class="md-title">代理申请</div>
+            <div class="md-subhead">98卡管家</div>
+          </md-card-header-text>
+
+          <md-card-media>
+            <img src="./assets/logo.png" alt="98卡管家">
+          </md-card-media>
         </md-card-header>
 
         <md-card-content>
@@ -120,7 +127,7 @@ export default {
       if (reg.test(this.form.phone)) {
         this.time = 60
         this.timer()
-        this.$http.post('CardStewardEhuan/user/sendSmsCode', { phone: this.form.phone, kindCode: '5' })
+        this.$http.post('CardSteward98/user/sendSmsCode', { phone: this.form.phone, kindCode: '5' })
           .then(function (response) {
             me.tooltip = '验证码发送成功'
             me.showTooltip = true
@@ -145,7 +152,7 @@ export default {
       const me = this
       this.sending = true
 
-      this.$http.post('CardStewardEhuan/user/agentApply', {
+      this.$http.post('CardSteward98/user/agentApply', {
         phone: this.form.phone,
         smsCode: this.form.captcha,
         name: this.form.name,
