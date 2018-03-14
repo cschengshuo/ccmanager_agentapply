@@ -5,11 +5,11 @@
         <md-card-header>
           <md-card-header-text>
             <div class="md-title">代理申请</div>
-            <div class="md-subhead">98卡管家</div>
+            <div class="md-subhead">XX卡管家</div>
           </md-card-header-text>
 
           <md-card-media>
-            <img src="./assets/logo.png" alt="98卡管家">
+            <img src="./assets/logo.png" alt="XX卡管家">
           </md-card-media>
         </md-card-header>
 
